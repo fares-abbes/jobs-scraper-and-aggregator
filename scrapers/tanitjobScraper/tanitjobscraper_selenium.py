@@ -6,23 +6,20 @@ import undetected_chromedriver as uc
 import json
 import time
 from datetime import datetime, timedelta
+from webdriver_manager.chrome import ChromeDriverManager
 
 def scrape_tanitjobs():
-    # Setup undetected Chrome to bypass Cloudflare
     print("Launching Chrome (undetected mode)...")
-    driver = uc.Chrome()
+    driver = uc.Chrome(driver_executable_path=ChromeDriverManager().install())
     
     try:
-        # Navigate to the jobs page
         print("Navigating to TanitJobs...")
         driver.get("https://www.tanitjobs.com/jobs/")
         
-        # Get today's date for comparison
         today = datetime.now().strftime("%d/%m/%Y")
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%d/%m/%Y")
         print(f"Scraping jobs from today ({today}) and yesterday ({yesterday})")
         
-        # Wait for Cloudflare to pass automatically (undetected-chromedriver handles this)
         print("Waiting for Cloudflare check to pass automatically (15-20 seconds)...")
         try:
             WebDriverWait(driver, 25).until(
@@ -38,14 +35,11 @@ def scrape_tanitjobs():
         page_num = 1
         reached_yesterday = False
         
-        # Pagination loop
         while not reached_yesterday:
             print(f"\n--- Page {page_num} ---")
             
-            # Find all job listings on current page
             print("Looking for job listings...")
             
-            # Try different selectors
             job_elements = driver.find_elements(By.CSS_SELECTOR, '.listing-item__jobs')
             
             if not job_elements:
@@ -56,7 +50,6 @@ def scrape_tanitjobs():
             
             print(f"Found {len(job_elements)} job listings")
             
-            # Extract data from each job
             for index, job in enumerate(job_elements, 1):
                 try:
                     job_info = {}
